@@ -22,20 +22,85 @@ import Typography from "@mui/material/Typography";
 import FormHelperText from "@mui/material/FormHelperText";
 import type { TextFieldProps } from "@mui/material/TextField";
 
-import { ICategory, IStore } from "../../interfaces";
+import { ICategory, INews, IStore } from "../../interfaces";
 import { watch } from "fs";
 import axios from "axios";
-import { Button } from "@mui/material";
+import { Button, Checkbox, CircularProgress, Input, useAutocomplete } from "@mui/material";
+import { useEffect, useState } from "react";
 
-export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
+interface Item {
+    id: number;
+    name: string;
+    name_en: string;
+}
+
+export const NewsCreate: React.FC<IResourceComponentsProps> = () => {
     const t = useTranslate();
     const {
         register,
         control,
         formState: { errors },
         saveButtonProps,
-    } = useForm<ICategory, HttpError, ICategory>();
-    console.log(control);
+        setValue,
+        handleSubmit,
+    } = useForm<INews, HttpError, INews>();
+
+    const [items, setItems] = useState<Item[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("refine-auth");
+
+        axios.get('http://localhost:8080/api/category', {
+            headers: {
+                'token': `${token}`
+            }
+        })
+            .then(response => {
+                const data: Item[] = response.data;
+                setItems(data);
+                setLoading(false);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }, []);
+
+    const [imageUrl, setImageUrl] = useState<string>("");
+
+
+    const handleCheckboxChange = (id: number) => {
+        if (selectedItems.includes(id)) {
+            setSelectedItems(selectedItems.filter(itemId => itemId !== id));
+        } else {
+            setSelectedItems([...selectedItems, id]);
+        }
+    };
+    const apiUrl = useApiUrl();
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const formData = new FormData();
+        const target = event.target;
+        const file: File = (target.files as FileList)[0];
+
+        formData.append("file", file);
+
+        const res = await axios.post<{ url: string }>(
+            `${apiUrl}/media/upload`,
+            formData,
+            {
+                withCredentials: false,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    token: localStorage.getItem('refine-auth')
+                },
+            },
+
+        );
+        const imageUpload: any = res.data;
+
+        setValue("image", imageUpload, { shouldValidate: true });
+    };
+
+
 
     return (
         <Create saveButtonProps={saveButtonProps}>
@@ -50,9 +115,19 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                 >
                     <Grid item xs={12} md={4}>
                         <Stack gap="24px">
-
-                            {/* Name (tiếng việt) */}
                             <FormControl>
+
+                                <TextField
+                                    {...register("category_id")}
+                                    size="small"
+                                    margin="none"
+                                    variant="outlined"
+                                    value={selectedItems.join(', ')}
+                                    style={{ display: "none" }}
+
+                                />
+
+
                                 <FormLabel
                                     sx={{
                                         marginBottom: "8px",
@@ -62,7 +137,7 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     }}
                                     required
                                 >
-                                    {t("Name (tiếng việt)")}
+                                    {t("Tiêu đề (tiếng việt)")}
                                 </FormLabel>
                                 <TextField
                                     {...register("name")}
@@ -76,7 +151,6 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
-                            {/* Description (English) */}
                             <FormControl>
                                 <FormLabel
                                     sx={{
@@ -87,7 +161,31 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     }}
                                     required
                                 >
-                                    {t("Description (tiếng việt)")}
+                                    {t("Giới thiệu (tiếng việt)")}
+                                </FormLabel>
+                                <TextField
+                                    {...register("content")}
+                                    size="small"
+                                    margin="none"
+                                    variant="outlined"
+                                />
+                                {errors.content && (
+                                    <FormHelperText error>
+                                        {errors.content.message}
+                                    </FormHelperText>
+                                )}
+                            </FormControl>
+                            <FormControl>
+                                <FormLabel
+                                    sx={{
+                                        marginBottom: "8px",
+                                        fontWeight: "700",
+                                        fontSize: "14px",
+                                        color: "text.primary",
+                                    }}
+                                    required
+                                >
+                                    {t("Nội dung (tiếng việt)")}
                                 </FormLabel>
                                 <TextField
                                     {...register("description")}
@@ -101,116 +199,8 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
-
-
-
-                            {/* Sort order */}
-                            <FormControl>
-                                <FormLabel
-                                    required
-                                    sx={{
-                                        marginBottom: "8px",
-                                        fontWeight: "700",
-                                        fontSize: "14px",
-                                        color: "text.primary",
-                                    }}
-                                >
-                                    {t("Sort order")}
-                                </FormLabel>
-                                <TextField
-                                    {...register("sort_order", {
-                                        required: t("errors.required.field", {
-                                            field: "sort_order",
-                                        }),
-                                    })}
-                                    size="small"
-                                    margin="none"
-                                    variant="outlined"
-                                />
-                                {errors.sort_order && (
-                                    <FormHelperText error>
-                                        {errors.sort_order.message}
-                                    </FormHelperText>
-                                )}
-                            </FormControl>
-
-                            {/* Parent ID */}
-                            <FormControl>
-                                <FormLabel
-                                    required
-                                    sx={{
-                                        marginBottom: "8px",
-                                        fontWeight: "700",
-                                        fontSize: "14px",
-                                        color: "text.primary",
-                                    }}
-                                >
-                                    {t("Parent ID")}
-                                </FormLabel>
-                                <TextField
-                                    {...register("parent_id", {
-                                        required: t("errors.required.field", {
-                                            field: "parent_id",
-                                        }),
-                                    })}
-                                    size="small"
-                                    margin="none"
-                                    variant="outlined"
-                                />
-                                {errors.parent_id && (
-                                    <FormHelperText error>
-                                        {errors.parent_id.message}
-                                    </FormHelperText>
-                                )}
-                            </FormControl>
-
-                            {/* Status */}
-                            <FormControl>
-                                <FormLabel
-                                    sx={{
-                                        marginBottom: "8px",
-                                        fontWeight: "700",
-                                        fontSize: "14px",
-                                        color: "text.primary",
-                                    }}
-                                    required
-                                >
-                                    {t("Status")}
-                                </FormLabel>
-                                <Controller
-                                    control={control}
-                                    name="status"
-                                    rules={{
-                                        required: t("errors.required.common"),
-                                    }}
-                                    render={({ field }) => (
-                                        <RadioGroup
-                                            id="status"
-                                            {...field}
-                                            row
-                                        >
-                                            <FormControlLabel
-                                                value={1}
-                                                control={<Radio />}
-                                                label={t("True")}
-                                            />
-                                            <FormControlLabel
-                                                value={0}
-                                                control={<Radio />}
-                                                label={t("False")}
-                                            />
-                                        </RadioGroup>
-                                    )}
-                                />
-                                {errors.status && (
-                                    <FormHelperText error>
-                                        {errors.status.message}
-                                    </FormHelperText>
-                                )}
-                            </FormControl>
-
                             {/* Upload File */}
-                            <FormControl>
+                            {/* <FormControl>
                                 <FormLabel
                                     sx={{
                                         marginBottom: "8px",
@@ -233,14 +223,27 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                         {errors.file.message}
                                     </FormHelperText>
                                 )}
-                            </FormControl>
+                            </FormControl> */}
+
+                            <div>
+                                {items.map((item: Item) => (
+                                    <FormControlLabel
+                                        key={item.id}
+                                        control={
+                                            <Checkbox
+                                                checked={selectedItems.includes(item.id)}
+                                                onChange={() => handleCheckboxChange(item.id)}
+                                            />
+                                        }
+                                        label={item.name}
+                                    />
+                                ))}
+                            </div>
                         </Stack>
                     </Grid>
-
-                    {/* English input */}
+                    {/* tieng anh  */}
                     <Grid item xs={12} md={4}>
                         <Stack gap="24px">
-                            {/* Name (English) */}
                             <FormControl>
                                 <FormLabel
                                     sx={{
@@ -251,7 +254,7 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     }}
                                     required
                                 >
-                                    {t("Name (English)")}
+                                    {t("Tiêu đề (English)")}
                                 </FormLabel>
                                 <TextField
                                     {...register("name_en")}
@@ -265,7 +268,6 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
-                            {/* Description (English) */}
                             <FormControl>
                                 <FormLabel
                                     sx={{
@@ -276,7 +278,31 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     }}
                                     required
                                 >
-                                    {t("Description (English)")}
+                                    {t("Giới thiệu (English)")}
+                                </FormLabel>
+                                <TextField
+                                    {...register("content_en")}
+                                    size="small"
+                                    margin="none"
+                                    variant="outlined"
+                                />
+                                {errors.content_en && (
+                                    <FormHelperText error>
+                                        {errors.content_en.message}
+                                    </FormHelperText>
+                                )}
+                            </FormControl>
+                            <FormControl>
+                                <FormLabel
+                                    sx={{
+                                        marginBottom: "8px",
+                                        fontWeight: "700",
+                                        fontSize: "14px",
+                                        color: "text.primary",
+                                    }}
+                                    required
+                                >
+                                    {t("Nội dung (English)")}
                                 </FormLabel>
                                 <TextField
                                     {...register("description_en")}
@@ -290,6 +316,59 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
+
+                            <Grid item xs={12} md={4}>
+                                <FormControl>
+                                    <FormLabel required>{t("products.fields.images.label")}</FormLabel>
+                                    <Stack alignItems="center">
+                                        <Avatar src={imageUrl} alt="Image" sx={{ width: 180, height: 180 }} />
+                                        <input type="file" accept="image/*" onChange={handleFileChange} />
+                                    </Stack>
+                                    {errors.image && <FormHelperText error>{errors.image.message}</FormHelperText>}
+                                </FormControl>
+                            </Grid>
+
+
+                            {/* Upload File */}
+                            {/* <FormControl>
+                                <FormLabel
+                                    sx={{
+                                        marginBottom: "8px",
+                                        fontWeight: "700",
+                                        fontSize: "14px",
+                                        color: "text.primary",
+                                    }}
+                                    required
+                                >
+                                    {t("Upload File")}
+                                </FormLabel>
+                                <input
+                                    type="file"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                    }}
+                                />
+                                {errors.file && (
+                                    <FormHelperText error>
+                                        {errors.file.message}
+                                    </FormHelperText>
+                                )}
+                            </FormControl> */}
+
+                            <div>
+                                {items.map((item: Item) => (
+                                    <FormControlLabel
+                                        key={item.id}
+                                        control={
+                                            <Checkbox
+                                                checked={selectedItems.includes(item.id)}
+                                                onChange={() => handleCheckboxChange(item.id)}
+                                            />
+                                        }
+                                        label={item.name_en}
+                                    />
+                                ))}
+                            </div>
                         </Stack>
                     </Grid>
                 </Grid>

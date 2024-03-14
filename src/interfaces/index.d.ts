@@ -10,8 +10,12 @@ export interface ICategory {
     created_at: string;
     file: IFile;
     //them vao doc du lieu 
+
     name: string;
     description: string;
+    name_en: string;
+    description_en: string;
+
 
 }
 export interface ICategories_lang {
@@ -93,9 +97,15 @@ export interface INews {
     file: string;
     updated_at: string;
     created_at: string;
-    // them vao de doc data
+    // them vao de khỏi hiện lỗi
     name: string;
     name_category: string;
+    content: string;
+    description: string;
+    name_en: string;
+    content_en: string;
+    description_en: string;
+    category_id: string;
 }
 export interface INew_categories {
     id: number;

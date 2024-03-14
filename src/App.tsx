@@ -39,9 +39,9 @@ import {
 import { AuthPage } from "./pages/auth";
 import { StoreList, StoreEdit, StoreCreate } from "./pages/stores";
 import { MenuList } from "./pages/menu";
-import { NewList } from "./pages/news/list";
+import { NewsList, NewsCreate, NewsEdit } from "./pages/news";
 import { ProductList } from "./pages/products";
-import { CategoryList, CategoryCreate } from "./pages/categories";
+import { CategoryList, CategoryCreate, CategoryEdit } from "./pages/categories";
 import { ColorModeContextProvider } from "./contexts";
 import { Header, Title, OffLayoutArea } from "./components";
 import { BikeWhiteIcon } from "./components/icons/bike-white";
@@ -71,7 +71,6 @@ const App: React.FC = () => {
         headers: headers,
     });
     const customDataProvider = dataProvider(API_URL, axiosInstance);
-    console.log(headers);
 
     return (
         <BrowserRouter>
@@ -112,19 +111,21 @@ const App: React.FC = () => {
                                 {
                                     name: "news",
                                     list: "/news",
-                                    show: "/new/show/:id",
+                                    show: "/news/show/:id",
+                                    create: "/news/create",
+                                    edit: "/news/edit/:id",
                                     meta: {
                                         icon: <AddShoppingCartOutlined />,
                                     },
                                 },
-                                {
-                                    name: "orders",
-                                    list: "/orders",
-                                    show: "/orders/show/:id",
-                                    meta: {
-                                        icon: <AddShoppingCartOutlined />,
-                                    },
-                                },
+                                // {
+                                //     name: "orders",
+                                //     list: "/orders",
+                                //     show: "/orders/show/:id",
+                                //     meta: {
+                                //         icon: <AddShoppingCartOutlined />,
+                                //     },
+                                // },
                                 {
                                     name: "users",
                                     list: "/users",
@@ -133,13 +134,13 @@ const App: React.FC = () => {
                                         icon: <PeopleOutlineOutlined />,
                                     },
                                 },
-                                {
-                                    name: "products",
-                                    list: "/products",
-                                    meta: {
-                                        icon: <LocalPizzaOutlined />,
-                                    },
-                                },
+                                // {
+                                //     name: "products",
+                                //     list: "/products",
+                                //     meta: {
+                                //         icon: <LocalPizzaOutlined />,
+                                //     },
+                                // },
                                 // {
                                 //     name: "stores",
                                 //     list: "/stores",
@@ -153,6 +154,7 @@ const App: React.FC = () => {
                                     name: "category",
                                     list: "/category",
                                     create: "/category/create",
+                                    edit: "/category/edit/:id",
                                     meta: {
                                         icon: <CategoryOutlined />,
                                     },
@@ -167,13 +169,13 @@ const App: React.FC = () => {
                                 //         icon: <BikeWhiteIcon />,
                                 //     },
                                 // },
-                                {
-                                    name: "statistica",
-                                    list: "/statistica",
-                                    meta: {
-                                        icon: <StarBorderOutlined />,
-                                    },
-                                },
+                                // {
+                                //     name: "statistica",
+                                //     list: "/statistica",
+                                //     meta: {
+                                //         icon: <StarBorderOutlined />,
+                                //     },
+                                // },
                             ]}
                         >
                             <Routes>
@@ -207,9 +209,19 @@ const App: React.FC = () => {
                                     <Route path="/menu">
                                         <Route index element={<MenuList />} />
                                     </Route>
+
                                     <Route path="/news">
-                                        <Route index element={<NewList />} />
+                                        <Route index element={<NewsList />} />
+                                        <Route
+                                            path="create"
+                                            element={<NewsCreate />}
+                                        />
+                                        <Route
+                                            path="edit/:id"
+                                            element={<NewsEdit />}
+                                        />
                                     </Route>
+
                                     <Route path="/users">
                                         <Route index element={<UserList />} />
                                         <Route
@@ -241,10 +253,10 @@ const App: React.FC = () => {
                                             path="create"
                                             element={<CategoryCreate />}
                                         />
-                                        {/* <Route
+                                        <Route
                                             path="edit/:id"
                                             element={<CategoryEdit />}
-                                        /> */}
+                                        />
                                     </Route>
 
 

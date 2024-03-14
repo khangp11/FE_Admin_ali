@@ -1,12 +1,11 @@
 import {
     HttpError,
     IResourceComponentsProps,
-    useApiUrl,
     useTranslate,
 } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
 import { Controller } from "react-hook-form";
-import { Create } from "@refinedev/mui";
+import { Edit } from "@refinedev/mui";
 import InputMask from "react-input-mask";
 
 import FormControl from "@mui/material/FormControl";
@@ -23,22 +22,21 @@ import FormHelperText from "@mui/material/FormHelperText";
 import type { TextFieldProps } from "@mui/material/TextField";
 
 import { ICategory, IStore } from "../../interfaces";
-import { watch } from "fs";
-import axios from "axios";
-import { Button } from "@mui/material";
+import { TextareaAutosize } from "@mui/material";
 
-export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
+export const CategoryEdit: React.FC<IResourceComponentsProps> = () => {
     const t = useTranslate();
     const {
         register,
         control,
+        refineCore: { formLoading },
         formState: { errors },
         saveButtonProps,
+        setValue,
     } = useForm<ICategory, HttpError, ICategory>();
-    console.log(control);
 
     return (
-        <Create saveButtonProps={saveButtonProps}>
+        <Edit isLoading={formLoading} saveButtonProps={saveButtonProps}>
             <form>
                 <Grid
                     container
@@ -76,7 +74,6 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
-                            {/* Description (English) */}
                             <FormControl>
                                 <FormLabel
                                     sx={{
@@ -89,11 +86,20 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                 >
                                     {t("Description (tiếng việt)")}
                                 </FormLabel>
-                                <TextField
+                                <TextareaAutosize
                                     {...register("description")}
-                                    size="small"
-                                    margin="none"
-                                    variant="outlined"
+                                    placeholder={t("Enter description")}
+                                    style={{
+                                        width: "100%", // Kích thước rộng bằng 100%
+                                        minHeight: "100px", // Độ cao tối thiểu là 100px
+                                        padding: "8px",
+                                        border: "1px solid #ced4da",
+                                        borderRadius: "4px",
+                                        resize: "vertical",
+                                        fontSize: "14px",
+                                        backgroundColor: "#333", // Màu nền tối
+                                        color: "#fff", // Màu chữ trắng
+                                    }}
                                 />
                                 {errors.description && (
                                     <FormHelperText error>
@@ -193,11 +199,13 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                                 value={1}
                                                 control={<Radio />}
                                                 label={t("True")}
+                                                checked={field.value === 1}
                                             />
                                             <FormControlLabel
                                                 value={0}
                                                 control={<Radio />}
                                                 label={t("False")}
+                                                checked={field.value === 0}
                                             />
                                         </RadioGroup>
                                     )}
@@ -208,6 +216,7 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                     </FormHelperText>
                                 )}
                             </FormControl>
+
 
                             {/* Upload File */}
                             <FormControl>
@@ -278,11 +287,20 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                                 >
                                     {t("Description (English)")}
                                 </FormLabel>
-                                <TextField
+                                <TextareaAutosize
                                     {...register("description_en")}
-                                    size="small"
-                                    margin="none"
-                                    variant="outlined"
+                                    placeholder={t("Enter description")}
+                                    style={{
+                                        width: "100%", // Kích thước rộng bằng 100%
+                                        minHeight: "100px", // Độ cao tối thiểu là 100px
+                                        padding: "8px",
+                                        border: "1px solid #ced4da",
+                                        borderRadius: "4px",
+                                        resize: "vertical",
+                                        fontSize: "14px",
+                                        backgroundColor: "#333", // Màu nền tối
+                                        color: "#fff", // Màu chữ trắng
+                                    }}
                                 />
                                 {errors.description_en && (
                                     <FormHelperText error>
@@ -294,10 +312,6 @@ export const CategoryCreate: React.FC<IResourceComponentsProps> = () => {
                     </Grid>
                 </Grid>
             </form>
-        </Create>
+        </Edit>
     );
 };
-function setValue(arg0: string, imageUpload: any, arg2: { shouldValidate: boolean; }) {
-    throw new Error("Function not implemented.");
-}
-
